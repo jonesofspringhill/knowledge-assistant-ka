@@ -1,0 +1,176 @@
+# ============================================================================
+
+# ka Configuration
+
+# ============================================================================
+
+application:
+  name: ka
+  version: "0.2"
+  environment: development
+
+# ============================================================================
+
+# Knowledge workspaces
+
+# ============================================================================
+
+workspaces:
+
+  example:
+    enabled: true
+    description: Local example workspace; set your own document roots before ingestion.
+    documents:
+      unavailable_root: warn
+      defaults:
+        include: ["*.pdf", "*.docx", "*.txt", "*.md"]
+        exclude: [archive/, temp/, backups/]
+        recursive: true
+      roots:
+        - name: documents
+          path: knowledge
+    artifacts: workspaces/example/artifacts
+    collection: example
+
+# ============================================================================
+
+# Document Processing
+
+# ============================================================================
+
+documents:
+
+  include:
+    - "*.pdf"
+    - "*.docx"
+    - "*.txt"
+    - "*.md"
+
+  exclude:
+    - archive/
+    - temp/
+    - backups/
+
+  recursive: true
+
+# Trusted sources for scripts/download_pdf_links.py. Add hosts before use.
+pdf_link_download:
+  allowed_hosts: []
+  allowed_extensions: [".pdf", ".txt", ".md"]
+  allowed_content_types: ["application/pdf", "text/plain", "text/markdown"]
+  timeout_seconds: 30
+  maximum_bytes: 50000000
+
+# ============================================================================
+
+# Chunking
+
+# ============================================================================
+
+chunking:
+
+  size: 600
+  maximum_size: 1000
+  minimum_size: 150
+  overlap: 100
+  strategy: section
+  detect_headings: true
+
+# ============================================================================
+
+# Embeddings
+
+# ============================================================================
+
+embedding:
+
+  provider: ollama
+  model: nomic-embed-text
+  batch_size: 32
+  version: "1"
+
+# ============================================================================
+
+# Large Language Model
+
+# ============================================================================
+
+llm:
+
+  provider: ollama
+  model: qwen3:8b
+  temperature: 0.2
+  top_p: 0.95
+  max_tokens: 2048
+  timeout_seconds: 120
+
+question_answering:
+  max_context_tokens: 4096
+  reserved_output_tokens: 1024
+  prompt_name: question_answer
+
+# ============================================================================
+
+# Retrieval
+
+# ============================================================================
+
+retrieval:
+
+  top_k: 8
+  similarity_threshold: 0.40
+  max_context_length: 6000
+  rerank: false
+  cache_policy: reuse
+
+# ============================================================================
+
+# Storage
+
+# ============================================================================
+
+storage:
+  provider: chromadb
+
+chroma:
+  directory: artifacts/chroma
+
+# ============================================================================
+
+# Analysis
+
+# ============================================================================
+
+analysis:
+
+  detect_people: true
+  detect_decisions: true
+  detect_actions: true
+
+  detect_claims: false
+  detect_contradictions: false
+
+# ============================================================================
+
+# Prompt Files
+
+# ============================================================================
+
+prompts:
+
+  question_answer: prompts/question_answer.md
+  summarise: prompts/summarise.md
+  contradiction: prompts/contradiction.md
+  planning: prompts/planning.md
+
+# ============================================================================
+
+# Logging
+
+# ============================================================================
+
+logging:
+
+  level: INFO
+  console: true
+  file: logs/knowledge_assistant.log

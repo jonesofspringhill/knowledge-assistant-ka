@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "ka"
+version = "0.2.0"
+description = "A local, provider-neutral knowledge and agent platform"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "chromadb",
+    "ollama",
+    "python-dotenv",
+    "pydantic",
+    "pyyaml",
+    "pypdf",
+    "python-docx"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "black",
+    "mypy"
+]
+
+
+[project.scripts]
+ka = "knowledge_assistant.main:main"
+knowledge-assistant = "knowledge_assistant.main:main"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]

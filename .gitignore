@@ -1,0 +1,80 @@
+knowledge-data/
+data/
+*.pdf
+*.docx
+*.eml
+*.msg
+*.sqlite
+*.db
+*.chromadb/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ka-test-output/
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Obsidian
+*/.obsidian/
+
+# Environment
+.env
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Runtime artifacts
+artifacts/
+workspace/
+cache/
+**/.knowledge-assistant-state.json
+workspaces/*/artifacts/evaluations/
+benchmarks/qa/local/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Chroma
+chroma/
+*.chroma/
+
+# Vector indexes
+faiss/
+index/
+
+# Documents
+knowledge/
+data/
+*.pdf
+*.docx
+*.pptx
+*.xlsx
+*.msg
+*.eml
+
+# Logs
+*.log
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Documentation
+.venv-docs/
+docs/_build/

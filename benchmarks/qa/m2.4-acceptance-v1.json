@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "m2.4-qa-acceptance",
+  "benchmark_version": "1.0.0",
+  "description": "Grounded single-question QA acceptance benchmark over shareable synthetic community-project documents.",
+  "cases": [
+    {
+      "id": "direct-001",
+      "category": "direct_fact",
+      "question": "What is the maximum Community Renewal Grant?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/funding-guide.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "grant-limit", "description": "The maximum grant is GBP 10,000."}],
+      "forbidden_claims": ["The grant is automatically awarded."],
+      "filters": {},
+      "notes": "Direct quantitative fact."
+    },
+    {
+      "id": "direct-002",
+      "category": "direct_fact",
+      "question": "When do applications for the 2027 community grant close?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/funding-guide.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "deadline", "description": "Applications close at 17:00 on 30 September 2027."}],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "Direct date fact."
+    },
+    {
+      "id": "direct-003",
+      "category": "direct_fact",
+      "question": "What is the minimum age for a general community volunteer?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/volunteer-handbook.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "volunteer-age", "description": "General volunteers must be at least 16."}],
+      "forbidden_claims": ["All volunteers may drive project vehicles at age 16."],
+      "filters": {},
+      "notes": "Distinguishes general volunteering from driving."
+    },
+    {
+      "id": "direct-004",
+      "category": "direct_fact",
+      "question": "What is the licensed seated capacity of the main community hall?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/facilities-register.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "hall-capacity", "description": "The seated capacity is 180 people."}],
+      "forbidden_claims": ["A standing public-event layout is approved."],
+      "filters": {},
+      "notes": "Direct facilities fact."
+    },
+    {
+      "id": "direct-005",
+      "category": "direct_fact",
+      "question": "What is the solar array's nameplate rating?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/sustainability-report.md"}],
+      "acceptable_sources": [{"source_path": "documents/energy-audit.md"}],
+      "expected_facts": [{"id": "solar-rating", "description": "The array is rated at 42 kilowatts peak."}],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "An explicitly acceptable corroborating source is available."
+    },
+    {
+      "id": "discovery-001",
+      "category": "document_discovery",
+      "question": "Which document is the primary source for the emergency contact procedure?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/volunteer-handbook.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "document-name", "description": "The Volunteer Handbook is the primary document."}],
+      "forbidden_claims": ["The corpus publishes a private duty-coordinator telephone number."],
+      "filters": {},
+      "notes": "Source-identification case."
+    },
+    {
+      "id": "discovery-002",
+      "category": "document_discovery",
+      "question": "Where are authoritative room capacities recorded?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/facilities-register.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "document-name", "description": "Room capacities are recorded in the Facilities Register."}],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "Document discovery without requiring a generated chunk id."
+    },
+    {
+      "id": "discovery-003",
+      "category": "document_discovery",
+      "question": "Which document contains the replacement community bus timetable?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/transport-update-2028.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "document-name", "description": "The Neighbourhood Transport Update 2028 contains it."}],
+      "forbidden_claims": ["The 2026 plan is the current replacement timetable."],
+      "filters": {},
+      "notes": "Document discovery with superseded material in the corpus."
+    },
+    {
+      "id": "filter-001",
+      "category": "metadata_filtered",
+      "question": "Within the funding guide, what is the maximum grant?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/funding-guide.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "grant-limit", "description": "The maximum is GBP 10,000."}],
+      "forbidden_claims": [],
+      "filters": {"source_filename": "funding-guide.md"},
+      "notes": "Exercises the existing scalar metadata filter path."
+    },
+    {
+      "id": "filter-002",
+      "category": "metadata_filtered",
+      "question": "Within the facilities register, how many people can use the Cedar meeting room?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/facilities-register.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "cedar-capacity", "description": "The Cedar room capacity is 24."}],
+      "forbidden_claims": [],
+      "filters": {"source_filename": "facilities-register.md"},
+      "notes": "Filtered source-specific fact."
+    },
+    {
+      "id": "filter-003",
+      "category": "metadata_filtered",
+      "question": "Within the volunteer handbook, what age restriction applies to project drivers?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/volunteer-handbook.md"}],
+      "acceptable_sources": [{"source_path": "documents/transport-plan-2026.md"}],
+      "expected_facts": [{"id": "driver-age", "description": "Project drivers must be at least 21."}],
+      "forbidden_claims": [],
+      "filters": {"source_filename": "volunteer-handbook.md"},
+      "notes": "Acceptable alternative is excluded by the deliberate filter."
+    },
+    {
+      "id": "temporal-001",
+      "category": "temporal",
+      "question": "When does the revised community bus service start, and how often will it run?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/transport-update-2028.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [
+        {"id": "start-date", "description": "The revised service starts on 3 September 2028."},
+        {"id": "frequency", "description": "It runs every 30 minutes on weekdays."}
+      ],
+      "forbidden_claims": ["The replacement service runs hourly."],
+      "filters": {},
+      "notes": "Requires selecting the explicit later update."
+    },
+    {
+      "id": "temporal-002",
+      "category": "temporal",
+      "question": "What is the current scheduled review deadline for the finance policy?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/finance-policy.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "review-date", "description": "The current review deadline is 31 March 2027."}],
+      "forbidden_claims": ["The superseded 31 March 2026 date is current."],
+      "filters": {},
+      "notes": "Later amendment within one source."
+    },
+    {
+      "id": "cross-001",
+      "category": "cross_document",
+      "question": "What is the largest combined amount available from the Community Renewal Grant and council match funding?",
+      "answerability": "answerable",
+      "expected_sources": [
+        {"source_path": "documents/funding-guide.md"},
+        {"source_path": "documents/finance-policy.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "combined", "description": "GBP 12,500: GBP 10,000 grant plus GBP 2,500 match funding."}],
+      "forbidden_claims": ["Match funding is available without an external award."],
+      "filters": {},
+      "notes": "Requires arithmetic over two documents."
+    },
+    {
+      "id": "cross-002",
+      "category": "cross_document",
+      "question": "What is the combined maximum occupancy of the seated main hall and Cedar meeting room?",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/facilities-register.md"}],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "combined-capacity", "description": "The combined maximum is 204 people."}],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "Combines two sections that may become separate chunks."
+    },
+    {
+      "id": "cross-003",
+      "category": "cross_document",
+      "question": "Can a 19-year-old general volunteer drive a project vehicle? Explain using the age rules.",
+      "answerability": "answerable",
+      "expected_sources": [
+        {"source_path": "documents/volunteer-handbook.md"},
+        {"source_path": "documents/transport-plan-2026.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [
+        {"id": "general-age", "description": "General volunteering is allowed from age 16."},
+        {"id": "driver-age", "description": "Driving requires age 21, so a 19-year-old cannot drive."}
+      ],
+      "forbidden_claims": ["A 19-year-old may drive because they may volunteer."],
+      "filters": {},
+      "notes": "Distinguishes related rules across sources."
+    },
+    {
+      "id": "compare-001",
+      "category": "evidence_comparison",
+      "question": "How do the North and South garden proposals compare on cost and construction time?",
+      "answerability": "answerable",
+      "expected_sources": [
+        {"source_path": "documents/north-garden-proposal.md"},
+        {"source_path": "documents/south-garden-proposal.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [
+        {"id": "cost", "description": "South costs GBP 55,000 versus North GBP 48,000, a GBP 7,000 difference."},
+        {"id": "time", "description": "South is planned for 12 weeks versus North 14 weeks."}
+      ],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "Balanced two-source comparison."
+    },
+    {
+      "id": "compare-002",
+      "category": "evidence_comparison",
+      "question": "Compare the stated solar and insulation annual cost savings.",
+      "answerability": "answerable",
+      "expected_sources": [{"source_path": "documents/sustainability-report.md"}],
+      "acceptable_sources": [{"source_path": "documents/energy-audit.md"}],
+      "expected_facts": [{"id": "savings", "description": "Solar is GBP 6,200 and insulation GBP 4,800 annually; solar is GBP 1,400 higher."}],
+      "forbidden_claims": ["The audit guarantees future financial returns."],
+      "filters": {},
+      "notes": "Compares unlike measures without overstating audit scope."
+    },
+    {
+      "id": "compare-003",
+      "category": "evidence_comparison",
+      "question": "How does the 2028 bus frequency differ from the original 2026 pilot?",
+      "answerability": "answerable",
+      "expected_sources": [
+        {"source_path": "documents/transport-plan-2026.md"},
+        {"source_path": "documents/transport-update-2028.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "frequency-change", "description": "The service changes from every 60 minutes to every 30 minutes."}],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "Temporal evidence comparison."
+    },
+    {
+      "id": "compare-004",
+      "category": "evidence_comparison",
+      "question": "Compare the maximum Community Renewal Grant with the local-business sponsorship cap.",
+      "answerability": "answerable",
+      "expected_sources": [
+        {"source_path": "documents/funding-guide.md"},
+        {"source_path": "documents/finance-policy.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "funding-comparison", "description": "The grant maximum is GBP 10,000 and sponsorship cap GBP 4,000; the grant is GBP 6,000 higher."}],
+      "forbidden_claims": ["Sponsorship can always count as the applicant's own cash contribution."],
+      "filters": {},
+      "notes": "Two-source financial comparison."
+    },
+    {
+      "id": "unanswerable-001",
+      "category": "unanswerable",
+      "question": "Who won the community achievement award in 2035?",
+      "answerability": "unanswerable",
+      "expected_sources": [],
+      "acceptable_sources": [],
+      "expected_facts": [],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "The synthetic corpus contains no award result or 2035 event."
+    },
+    {
+      "id": "unanswerable-002",
+      "category": "unanswerable",
+      "question": "On what date will the community-centre cafe open?",
+      "answerability": "unanswerable",
+      "expected_sources": [],
+      "acceptable_sources": [],
+      "expected_facts": [],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "No cafe is mentioned."
+    },
+    {
+      "id": "unanswerable-003",
+      "category": "unanswerable",
+      "question": "What is the project director's private telephone number?",
+      "answerability": "unanswerable",
+      "expected_sources": [],
+      "acceptable_sources": [],
+      "expected_facts": [],
+      "forbidden_claims": [],
+      "filters": {},
+      "notes": "No private telephone number appears in the shareable corpus."
+    },
+    {
+      "id": "conflict-001",
+      "category": "conflicting",
+      "question": "What are the community centre's Saturday opening hours?",
+      "answerability": "conflicting",
+      "expected_sources": [
+        {"source_path": "documents/centre-hours-2024.md"},
+        {"source_path": "documents/centre-hours-2025.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "conflict", "description": "The notices conflict: 09:00-17:00 versus 10:00-16:00, with no resolved authority."}],
+      "forbidden_claims": ["One set of hours is certainly current."],
+      "filters": {},
+      "notes": "The reviewer expects explicit unresolved uncertainty."
+    },
+    {
+      "id": "conflict-002",
+      "category": "conflicting",
+      "question": "What is the total budget for the river path project?",
+      "answerability": "conflicting",
+      "expected_sources": [
+        {"source_path": "documents/river-project-estimate-a.md"},
+        {"source_path": "documents/river-project-estimate-b.md"}
+      ],
+      "acceptable_sources": [],
+      "expected_facts": [{"id": "conflict", "description": "The corpus gives unresolved totals of GBP 1.20 million and GBP 1.35 million."}],
+      "forbidden_claims": ["Either estimate is definitively authoritative."],
+      "filters": {},
+      "notes": "Conflicting quantitative evidence must not be over-resolved."
+    }
+  ]
+}

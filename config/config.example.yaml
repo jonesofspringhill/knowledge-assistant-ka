@@ -1,0 +1,99 @@
+application:
+  name: ka
+  version: "0.2"
+  environment: development
+
+workspaces:
+  example:
+    enabled: true
+    description: Example local document collection
+    # Legacy form: documents: ./knowledge
+    # Named roots inherit defaults and preserve source-root provenance.
+    documents:
+      unavailable_root: warn
+      defaults:
+        include: ["*.pdf", "*.docx", "*.txt", "*.md"]
+        exclude: [archive/, temp/, backups/]
+        recursive: true
+      roots:
+        - name: documents
+          path: ./knowledge
+    # Optional evidence-library control records are validated before ingestion.
+    # evidence_library:
+    #   manifest: ./metadata/research-index.json
+    #   policy: ./metadata/research-policy.yaml
+    #   missing_referenced_document: warn
+    #   unmatched_document: warn
+    artifacts: workspaces/example/artifacts
+    collection: example
+
+documents:
+  include: ["*.pdf", "*.docx", "*.txt", "*.md"]
+  exclude: [archive/, temp/, backups/]
+  recursive: true
+
+# Links are downloaded only when their host and detected file type are allowed.
+pdf_link_download:
+  allowed_hosts: []
+  allowed_extensions: [".pdf", ".txt", ".md"]
+  allowed_content_types: ["application/pdf", "text/plain", "text/markdown"]
+  timeout_seconds: 30
+  maximum_bytes: 50000000
+
+chunking:
+  size: 600
+  maximum_size: 1000
+  minimum_size: 150
+  overlap: 100
+  strategy: section
+  detect_headings: true
+
+embedding:
+  provider: ollama
+  model: nomic-embed-text
+  batch_size: 32
+  version: "1"
+
+llm:
+  provider: ollama
+  model: qwen3:8b
+  temperature: 0.2
+  top_p: 0.95
+  max_tokens: 2048
+  timeout_seconds: 120
+
+question_answering:
+  max_context_tokens: 4096
+  reserved_output_tokens: 1024
+  prompt_name: question_answer
+
+retrieval:
+  top_k: 8
+  similarity_threshold: 0.65
+  max_context_length: 6000
+  rerank: false
+  cache_policy: reuse
+
+storage:
+  provider: chromadb
+
+chroma:
+  directory: artifacts/chroma
+
+analysis:
+  detect_people: true
+  detect_decisions: true
+  detect_actions: true
+  detect_claims: false
+  detect_contradictions: false
+
+prompts:
+  question_answer: prompts/question_answer.md
+  summarise: prompts/summarise.md
+  contradiction: prompts/contradiction.md
+  planning: prompts/planning.md
+
+logging:
+  level: INFO
+  console: true
+  file: logs/ka.log

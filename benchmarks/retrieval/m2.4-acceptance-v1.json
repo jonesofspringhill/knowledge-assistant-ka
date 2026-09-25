@@ -1,0 +1,44 @@
+{
+  "benchmarks": [
+    {
+      "question": "What is the maximum Community Renewal Grant?",
+      "expected_keywords": ["gbp 10,000"]
+    },
+    {
+      "question": "What age must a general volunteer be?",
+      "expected_keywords": ["16 years old"]
+    },
+    {
+      "question": "What is the Cedar meeting room capacity?",
+      "expected_keywords": ["24 people"]
+    },
+    {
+      "question": "When does the revised bus service start?",
+      "expected_keywords": ["3 september 2028"]
+    },
+    {
+      "question": "What is the solar array rating?",
+      "expected_keywords": ["42 kilowatts peak"]
+    },
+    {
+      "question": "What does the North Garden cost?",
+      "expected_keywords": ["gbp 48,000"]
+    },
+    {
+      "question": "What does the South Garden cost?",
+      "expected_keywords": ["gbp 55,000"]
+    },
+    {
+      "question": "What Saturday hours are in the 2024 centre notice?",
+      "expected_keywords": ["09:00", "17:00"]
+    },
+    {
+      "question": "What total is in River Path Estimate A?",
+      "expected_keywords": ["gbp 1.20 million"]
+    },
+    {
+      "question": "What is the finance policy review date after amendment F-7?",
+      "expected_keywords": ["31 march 2027"]
+    }
+  ]
+}
