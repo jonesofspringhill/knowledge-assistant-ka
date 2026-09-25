@@ -57,6 +57,8 @@ embedding:
 llm:
   provider: ollama
   model: qwen3:8b
+  # Qwen3 can use a reasoning channel; disable it for concise structured QA.
+  thinking: false
   temperature: 0.2
   top_p: 0.95
   max_tokens: 2048

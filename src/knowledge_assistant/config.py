@@ -207,6 +207,7 @@ class LLMSettings(_StrictModel):
 
     provider: str = Field(min_length=1)
     model: str = Field(min_length=1)
+    thinking: bool | Literal["low", "medium", "high"] | None = None
     temperature: float = Field(ge=0, le=2)
     top_p: float = Field(gt=0, le=1)
     max_tokens: int = Field(gt=0)

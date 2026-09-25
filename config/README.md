@@ -9,6 +9,10 @@ The YAML file holds non-secret application options. Place credentials and
 machine-specific service connection values in the repository-root `.env` file,
 copied from `.env.example`. Pass that file explicitly to `load_settings`.
 
+`llm.thinking` is optional. For Ollama models that support a reasoning channel,
+set it to `false`, `low`, `medium`, or `high`; `false` is a good default for
+concise structured question answering.
+
 Relative YAML paths are resolved from the repository root (the parent of the
 `config` directory). This makes paths such as `prompts/question_answer.md` and
 `artifacts/chroma` portable across machines. Each workspace's `artifacts` path

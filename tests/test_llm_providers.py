@@ -51,14 +51,20 @@ def test_ollama_retries_one_empty_response(monkeypatch: pytest.MonkeyPatch) -> N
         ]
     )
 
+    requests = []
+
     class ClientStub:
         def __init__(self, **_kwargs) -> None:
             pass
 
-        def chat(self, **_kwargs):
+        def chat(self, **kwargs):
+            requests.append(kwargs)
             return next(responses)
 
     monkeypatch.setattr("knowledge_assistant.llm.ollama.Client", ClientStub)
-    assert OllamaLLM(_settings("ollama"), EnvironmentSettings()).generate("test") == (
-        "recovered response"
+    settings = _settings("ollama").model_copy(update={"thinking": False})
+    assert (
+        OllamaLLM(settings, EnvironmentSettings()).generate("test")
+        == "recovered response"
     )
+    assert [request["think"] for request in requests] == [False, False]

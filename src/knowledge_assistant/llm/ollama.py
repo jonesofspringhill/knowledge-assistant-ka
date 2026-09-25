@@ -30,14 +30,19 @@ class OllamaLLM:
         try:
             client = Client(host=host, timeout=self.settings.timeout_seconds)
             for _attempt in range(2):
-                response: Any = client.chat(
-                    model=self.settings.model,
-                    messages=[{"role": "user", "content": prompt}],
-                    options={
+                request: dict[str, Any] = {
+                    "model": self.settings.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "options": {
                         "temperature": self.settings.temperature,
                         "top_p": self.settings.top_p,
                         "num_predict": self.settings.max_tokens,
                     },
+                }
+                if self.settings.thinking is not None:
+                    request["think"] = self.settings.thinking
+                response: Any = client.chat(
+                    **request,
                 )
                 content = _response_content(response)
                 if content:
