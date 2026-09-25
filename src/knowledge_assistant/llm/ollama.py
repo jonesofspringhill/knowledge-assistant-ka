@@ -23,32 +23,32 @@ class OllamaLLM:
         return self.settings.model
 
     def generate(self, prompt: str) -> str:
-        """Generate one response and reject empty or malformed model output."""
+        """Generate one response, retrying one transient empty response."""
         host = (
             str(self.environment.ollama_host) if self.environment.ollama_host else None
         )
         try:
             client = Client(host=host, timeout=self.settings.timeout_seconds)
-            response: Any = client.chat(
-                model=self.settings.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={
-                    "temperature": self.settings.temperature,
-                    "top_p": self.settings.top_p,
-                    "num_predict": self.settings.max_tokens,
-                },
-            )
+            for _attempt in range(2):
+                response: Any = client.chat(
+                    model=self.settings.model,
+                    messages=[{"role": "user", "content": prompt}],
+                    options={
+                        "temperature": self.settings.temperature,
+                        "top_p": self.settings.top_p,
+                        "num_predict": self.settings.max_tokens,
+                    },
+                )
+                content = _response_content(response)
+                if content:
+                    return content
         except Exception as error:
             raise LLMInvocationError(
                 f"Unable to invoke Ollama model '{self.settings.model}': {error}"
             ) from error
-
-        content = _response_content(response)
-        if not content:
-            raise LLMInvocationError(
-                f"Ollama model '{self.settings.model}' returned an empty response."
-            )
-        return content
+        raise LLMInvocationError(
+            f"Ollama model '{self.settings.model}' returned an empty response twice."
+        )
 
 
 def _response_content(response: Any) -> str:

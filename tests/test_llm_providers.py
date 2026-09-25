@@ -8,6 +8,7 @@ from knowledge_assistant.llm import (
     create_text_generator,
     register_provider,
 )
+from knowledge_assistant.llm.ollama import OllamaLLM
 
 
 class StubGenerator:
@@ -40,3 +41,24 @@ def test_provider_registry_constructs_a_registered_adapter() -> None:
 def test_provider_registry_reports_unknown_adapter() -> None:
     with pytest.raises(LLMInvocationError, match="No language-model adapter"):
         create_text_generator(_settings("unknown-provider"), EnvironmentSettings())
+
+
+def test_ollama_retries_one_empty_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    responses = iter(
+        [
+            {"message": {"content": ""}},
+            {"message": {"content": "recovered response"}},
+        ]
+    )
+
+    class ClientStub:
+        def __init__(self, **_kwargs) -> None:
+            pass
+
+        def chat(self, **_kwargs):
+            return next(responses)
+
+    monkeypatch.setattr("knowledge_assistant.llm.ollama.Client", ClientStub)
+    assert OllamaLLM(_settings("ollama"), EnvironmentSettings()).generate("test") == (
+        "recovered response"
+    )
