@@ -92,7 +92,7 @@ def score_review(
     human_gates = _human_gates(report, review, human)
     automatic = list(report.automatic_gates)
     all_passed = all(
-        gate.passed is True for gate in structural + automatic + human_gates
+        gate.passed is not False for gate in structural + automatic + human_gates
     )
     scored = ScoredReport(
         raw_report_checksum=hashlib.sha256(raw_bytes).hexdigest(),
@@ -279,7 +279,7 @@ def render_run_markdown(report: QARunReport) -> str:
             )
     lines.extend(["", "## Gates", ""])
     lines.extend(
-        f"- {'PASS' if gate.passed else 'FAIL'} {gate.name}: {gate.actual} ({gate.requirement})"
+        f"- {_gate_state(gate)} {gate.name}: {gate.actual} ({gate.requirement})"
         for gate in report.automatic_gates
     )
     lines.extend(["", "Human review: **pending**", ""])
@@ -301,7 +301,7 @@ def render_scored_markdown(scored: ScoredReport) -> str:
     lines.extend(["", "## Gates", ""])
     for gate in scored.structural_gates + scored.automatic_gates + scored.human_gates:
         lines.append(
-            f"- {'PASS' if gate.passed else 'FAIL'} {gate.name}: "
+            f"- {_gate_state(gate)} {gate.name}: "
             f"{gate.actual} ({gate.requirement})"
         )
     return "\n".join(lines) + "\n"
@@ -706,9 +706,15 @@ def _rate(numerator: int, denominator: int) -> RateMetric:
 def _value_gate(
     name: str, value: float | None, operator: str, threshold: float
 ) -> GateOutcome:
-    passed = value is not None and (
-        value >= threshold if operator == ">=" else value <= threshold
-    )
+    if value is None:
+        return GateOutcome(
+            name=name,
+            passed=None,
+            actual=None,
+            requirement=f"{operator} {threshold}",
+            detail="not applicable",
+        )
+    passed = value >= threshold if operator == ">=" else value <= threshold
     return GateOutcome(
         name=name,
         passed=passed,
@@ -716,6 +722,10 @@ def _value_gate(
         requirement=f"{operator} {threshold}",
         detail="not applicable" if value is None else "",
     )
+
+
+def _gate_state(gate: GateOutcome) -> str:
+    return "PASS" if gate.passed is True else "FAIL" if gate.passed is False else "N/A"
 
 
 def _write_json(path: Path, value: Any, *, overwrite: bool = False) -> None:

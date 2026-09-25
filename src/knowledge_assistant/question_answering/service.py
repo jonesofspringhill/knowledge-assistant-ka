@@ -44,6 +44,17 @@ _UNCERTAINTY = re.compile(
     r"(?ims)^\s*Uncertainty\s*:\s*(.*?)"
     r"(?=^\s*(?:Reasoning|Status|Answer|Evidence)\s*:|\Z)"
 )
+_NO_UNCERTAINTY = re.compile(
+    r"(?is)^\s*(?:<none>|none|no uncertainty|n/?a)(?:\.|\s|$)"
+)
+_CONFLICT_EVIDENCE = re.compile(
+    r"(?is)(?:"
+    r"\b(?:different|conflicting|inconsistent|incompatible|superseded|older)\b"
+    r".{0,100}\b(?:date|deadline|value|figure|amount|version|statement)\b"
+    r"|\b(?:confirm|verify|clarify|check)\b"
+    r".{0,80}\b(?:date|deadline|value|figure|amount)\b"
+    r")"
+)
 
 
 def _structured_output(
@@ -58,9 +69,51 @@ def _structured_output(
     )
     uncertainty_match = _UNCERTAINTY.search(answer)
     uncertainty = uncertainty_match.group(1).strip() if uncertainty_match else ""
-    if uncertainty.casefold() in {"", "none", "none.", "<none>"}:
+    if not uncertainty or _NO_UNCERTAINTY.match(uncertainty):
         uncertainty = ""
     return status, uncertainty or None
+
+
+def _apply_conflict_evidence_guard(
+    answer: str,
+    status: Literal["answered", "insufficient_evidence"],
+    uncertainty: str | None,
+    evidence: list[SearchResult],
+) -> tuple[str, Literal["answered", "insufficient_evidence"], str | None]:
+    """Prevent an unqualified answer when supplied evidence requires confirmation.
+
+    This deliberately narrow check is a final safety net for explicit retrieval
+    evidence such as "confirm the deadline" or "an older form gives a different
+    date".  The model remains responsible for ordinary evidence assessment.
+    """
+    if status != "answered" or uncertainty:
+        return answer, status, uncertainty
+    labels = [
+        f"[S{index}]"
+        for index, item in enumerate(evidence, 1)
+        if _CONFLICT_EVIDENCE.search(item.text)
+    ]
+    if not labels:
+        return answer, status, uncertainty
+    cited = " ".join(labels)
+    uncertainty = (
+        "The supplied evidence explicitly describes a differing or unconfirmed "
+        "value."
+    )
+    guarded_answer = (
+        "Status: INSUFFICIENT_EVIDENCE\n\n"
+        "Answer:\nThe supplied evidence does not establish an authoritative "
+        f"answer because it records a differing or unconfirmed value {cited}.\n\n"
+        f"Evidence:\n{cited}\n\n"
+        f"Uncertainty:\n{uncertainty}\n\n"
+        "Reasoning:\nAn evidence-conflict safeguard prevented a single value "
+        "from being presented as authoritative."
+    )
+    return (
+        guarded_answer,
+        "insufficient_evidence",
+        uncertainty,
+    )
 
 
 def answer_question(
@@ -158,6 +211,9 @@ def answer_question(
         raise QuestionAnsweringError(str(error)) from error
     generation_latency = time.monotonic() - generation_started
     status, uncertainty = _structured_output(answer)
+    answer, status, uncertainty = _apply_conflict_evidence_guard(
+        answer, status, uncertainty, list(selection.evidence)
+    )
     citations = [
         Citation(
             label=f"S{index}",

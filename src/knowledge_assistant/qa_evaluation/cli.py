@@ -175,7 +175,7 @@ def _run(
         progress=progress,
     )
     raw, _, review = write_run_artifacts(report, workspace.artifacts)
-    passed = all(gate.passed is True for gate in report.automatic_gates)
+    passed = all(gate.passed is not False for gate in report.automatic_gates)
     print(f"Automatic gates: {'PASS' if passed else 'FAIL'}")
     print("Human review: PENDING")
     print(f"Run: {raw}")

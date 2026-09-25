@@ -39,6 +39,10 @@ If one source gives one deadline and another gives a different deadline that
 the context says must be confirmed, the answer must not call either deadline
 authoritative.
 
+Before finalising, check every supplied source for words such as `different`,
+`older`, `conflicting`, `superseded`, or `confirm`. If they qualify the
+requested value, do not state any one value as authoritative.
+
 Answer:
 
 <clear answer>

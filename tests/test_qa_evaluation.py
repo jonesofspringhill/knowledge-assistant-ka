@@ -234,6 +234,25 @@ def test_run_reuses_one_answer_question_retrieval_and_excludes_raw_evidence(
     assert "fully rendered prompt" not in serialised
 
 
+def test_not_applicable_gates_are_neutral_not_automatic_failures(
+    tmp_path: Path,
+) -> None:
+    report, _, _ = _run(tmp_path)
+    conflict_gate = next(
+        gate
+        for gate in report.automatic_gates
+        if gate.name == "conflicting_uncertainty_presence"
+    )
+
+    assert conflict_gate.passed is None
+    assert conflict_gate.detail == "not applicable"
+
+    raw, _, review = write_run_artifacts(report, tmp_path / "workspace")
+    _complete_review(review)
+    scored, _, _ = score_review(raw, review)
+    assert scored.all_gates_passed is True
+
+
 def test_citation_diagnostics_handle_duplicates_and_invalid_labels(
     tmp_path: Path,
 ) -> None:
@@ -337,6 +356,7 @@ def test_baseline_requires_clean_worktree_and_failing_reason(tmp_path: Path) -> 
         designate_baseline(clean_path, accept_failing=True, reason="measurement")
 
     content["run"]["git"]["commit"] = "a" * 40
+    content["all_gates_passed"] = False
     clean_path.write_text(json.dumps(content), encoding="utf-8")
     with pytest.raises(ReviewValidationError, match="recorded reason"):
         designate_baseline(clean_path, accept_failing=True)

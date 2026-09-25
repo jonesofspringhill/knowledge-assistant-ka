@@ -548,9 +548,17 @@ def _latencies(values: list[float]) -> LatencyStatistics:
 
 
 def _minimum_gate(name: str, metric: RateMetric, minimum: float) -> GateOutcome:
+    if metric.value is None:
+        return GateOutcome(
+            name=name,
+            passed=None,
+            actual=None,
+            requirement=f">= {minimum:.2f}",
+            detail="not applicable",
+        )
     return GateOutcome(
         name=name,
-        passed=metric.value is not None and metric.value >= minimum,
+        passed=metric.value >= minimum,
         actual=metric.value,
         requirement=f">= {minimum:.2f}",
         detail="not applicable" if metric.value is None else "",
@@ -558,9 +566,17 @@ def _minimum_gate(name: str, metric: RateMetric, minimum: float) -> GateOutcome:
 
 
 def _maximum_gate(name: str, metric: RateMetric, maximum: float) -> GateOutcome:
+    if metric.value is None:
+        return GateOutcome(
+            name=name,
+            passed=None,
+            actual=None,
+            requirement=f"<= {maximum:.2f}",
+            detail="not applicable",
+        )
     return GateOutcome(
         name=name,
-        passed=metric.value is not None and metric.value <= maximum,
+        passed=metric.value <= maximum,
         actual=metric.value,
         requirement=f"<= {maximum:.2f}",
         detail="not applicable" if metric.value is None else "",

@@ -16,7 +16,10 @@ from knowledge_assistant.question_answering.context import (
     ContextBudgetError,
     build_context,
 )
-from knowledge_assistant.question_answering.service import answer_question
+from knowledge_assistant.question_answering.service import (
+    _structured_output,
+    answer_question,
+)
 from knowledge_assistant.retrieval.models import SearchResult
 
 
@@ -49,6 +52,18 @@ class StructuredGeneratorStub(GeneratorStub):
             "Evidence:\nNone.\n\n"
             "Uncertainty:\nNo supplied source addresses the requested fact.\n\n"
             "Reasoning:\nThe requested fact is absent."
+        )
+
+
+class ConflictIgnoringGeneratorStub(GeneratorStub):
+    def generate(self, prompt: str) -> str:
+        self.prompts.append(prompt)
+        return (
+            "Status: ANSWERED\n\n"
+            "Answer:\nThe authoritative deadline is 5 October 2026. [S1]\n\n"
+            "Evidence:\n[S1]\n\n"
+            "Uncertainty:\nNone. The context explicitly states the deadline.\n\n"
+            "Reasoning:\nThe date is stated directly."
         )
 
 
@@ -196,3 +211,43 @@ def test_answer_question_reads_exact_structured_status_and_uncertainty(
     assert result.status == "insufficient_evidence"
     assert result.uncertainty == "No supplied source addresses the requested fact."
     assert result.model == "test-model"
+
+
+def test_structured_output_does_not_treat_none_with_explanation_as_uncertainty() -> None:
+    status, uncertainty = _structured_output(
+        "Status: ANSWERED\n\nUncertainty:\nNone. The context is explicit."
+    )
+
+    assert status == "answered"
+    assert uncertainty is None
+
+
+def test_answer_question_blocks_unqualified_answer_when_evidence_requires_confirmation(
+    tmp_path: Path,
+) -> None:
+    retrieval, embedding, llm = _settings()
+    generator = ConflictIgnoringGeneratorStub()
+    evidence = [
+        _result(
+            "The current form gives 5 October 2026, but KHH should confirm the "
+            "deadline because an older indexed form gives a different date."
+        )
+    ]
+
+    result = answer_question(
+        _workspace(tmp_path),
+        tmp_path / "chroma",
+        retrieval,
+        embedding,
+        llm,
+        EnvironmentSettings(),
+        PromptStub("{question}\n{context}\n{sources}"),
+        "What is the authoritative deadline?",
+        generator=generator,
+        searcher=lambda *args, **kwargs: (evidence, 0.01),
+    )
+
+    assert result.status == "insufficient_evidence"
+    assert result.uncertainty is not None
+    assert "evidence-conflict safeguard" in result.answer
+    assert "[S1]" in result.answer
