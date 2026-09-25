@@ -1,5 +1,6 @@
 """Tests for document discovery, normalisation, and the ingest CLI."""
 
+from email.message import EmailMessage
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -137,6 +138,34 @@ def test_markdown_extractor_returns_title_and_text(tmp_path: Path) -> None:
     path = tmp_path / "note.md"
     path.write_text("# Title\n\nBody", encoding="utf-8")
     assert extract_markdown(path) == ("# Title\n\nBody", {"title": "Title"})
+
+
+def test_eml_extractor_prefers_plain_text_and_excludes_attachments(
+    tmp_path: Path,
+) -> None:
+    from knowledge_assistant.ingestion.extractors.eml import extract_eml
+
+    message = EmailMessage()
+    message["Subject"] = "Volunteer update"
+    message["From"] = "Secretary <secretary@example.org>"
+    message["To"] = "Trustees <trustees@example.org>"
+    message["Date"] = "Tue, 1 Sep 2026 09:30:00 +0000"
+    message.set_content("The volunteer interacted with the students.")
+    message.add_alternative(
+        "<p>The volunteer <strong>interacted</strong>.</p>", subtype="html"
+    )
+    message.add_attachment(b"not searchable", maintype="application", subtype="pdf")
+    path = tmp_path / "message.eml"
+    path.write_bytes(message.as_bytes())
+
+    text, metadata = extract_eml(path)
+
+    assert "Volunteer update" in text
+    assert "interacted with the students" in text
+    assert "not searchable" not in text
+    assert metadata["title"] == "Volunteer update"
+    assert metadata["author"] == "Secretary <secretary@example.org>"
+    assert metadata["body_format"] == "plain"
 
 
 def test_cli_ingest_reports_summary(tmp_path: Path, capsys) -> None:

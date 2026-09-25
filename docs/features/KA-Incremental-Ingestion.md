@@ -51,6 +51,8 @@ the destination's local `.env` file.
 - Preserve PDF page boundaries and report pages requiring OCR. Benchmark native
   extraction on representative PDFs before selecting a faster backend.
 - Add selective OCR with cached results, and DOCX table/heading extraction.
+- EML files exported from Thunderbird are ingested as headers and text bodies;
+  attachments remain separate source files and are not opened from email.
 - Extend extraction reuse to incremental chunk generation, then benchmark the
   complete pipeline, including embedding reuse and indexing.
 - Add model-provider adapters for LM Studio and OpenAI alongside Ollama. Hold

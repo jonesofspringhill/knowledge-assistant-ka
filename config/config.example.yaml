@@ -12,7 +12,7 @@ workspaces:
     documents:
       unavailable_root: warn
       defaults:
-        include: ["*.pdf", "*.docx", "*.txt", "*.md"]
+        include: ["*.pdf", "*.docx", "*.txt", "*.md", "*.eml"]
         exclude: [archive/, temp/, backups/]
         recursive: true
       roots:
@@ -28,7 +28,7 @@ workspaces:
     collection: example
 
 documents:
-  include: ["*.pdf", "*.docx", "*.txt", "*.md"]
+  include: ["*.pdf", "*.docx", "*.txt", "*.md", "*.eml"]
   exclude: [archive/, temp/, backups/]
   recursive: true
 
