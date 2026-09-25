@@ -47,13 +47,25 @@ _UNCERTAINTY = re.compile(
 _NO_UNCERTAINTY = re.compile(
     r"(?is)^\s*(?:<none>|none|no uncertainty|n/?a)(?:\.|\s|$)"
 )
-_CONFLICT_EVIDENCE = re.compile(
+_DATE_CONFLICT_EVIDENCE = re.compile(
     r"(?is)(?:"
     r"\b(?:different|conflicting|inconsistent|incompatible|superseded|older)\b"
-    r".{0,100}\b(?:date|deadline|value|figure|amount|version|statement)\b"
+    r".{0,100}\b(?:date|deadline)\b"
     r"|\b(?:confirm|verify|clarify|check)\b"
-    r".{0,80}\b(?:date|deadline|value|figure|amount)\b"
+    r".{0,80}\b(?:date|deadline)\b"
     r")"
+)
+_VALUE_CONFLICT_EVIDENCE = re.compile(
+    r"(?is)(?:"
+    r"\b(?:different|conflicting|inconsistent|incompatible|superseded|older)\b"
+    r".{0,100}\b(?:value|figure|amount|cost|price|budget|grant)\b"
+    r"|\b(?:confirm|verify|clarify|check)\b"
+    r".{0,80}\b(?:value|figure|amount|cost|price|budget|grant)\b"
+    r")"
+)
+_DATE_QUESTION = re.compile(r"(?i)\b(?:date|deadline|when|due|close|closing)\b")
+_VALUE_QUESTION = re.compile(
+    r"(?i)(?:\bhow much\b|\b(?:value|figure|amount|cost|price|budget|grant)\b)"
 )
 
 
@@ -78,6 +90,7 @@ def _apply_conflict_evidence_guard(
     answer: str,
     status: Literal["answered", "insufficient_evidence"],
     uncertainty: str | None,
+    question: str,
     evidence: list[SearchResult],
 ) -> tuple[str, Literal["answered", "insufficient_evidence"], str | None]:
     """Prevent an unqualified answer when supplied evidence requires confirmation.
@@ -88,10 +101,17 @@ def _apply_conflict_evidence_guard(
     """
     if status != "answered" or uncertainty:
         return answer, status, uncertainty
+    conflict_patterns = []
+    if _DATE_QUESTION.search(question):
+        conflict_patterns.append(_DATE_CONFLICT_EVIDENCE)
+    if _VALUE_QUESTION.search(question):
+        conflict_patterns.append(_VALUE_CONFLICT_EVIDENCE)
+    if not conflict_patterns:
+        return answer, status, uncertainty
     labels = [
         f"[S{index}]"
         for index, item in enumerate(evidence, 1)
-        if _CONFLICT_EVIDENCE.search(item.text)
+        if any(pattern.search(item.text) for pattern in conflict_patterns)
     ]
     if not labels:
         return answer, status, uncertainty
@@ -212,7 +232,7 @@ def answer_question(
     generation_latency = time.monotonic() - generation_started
     status, uncertainty = _structured_output(answer)
     answer, status, uncertainty = _apply_conflict_evidence_guard(
-        answer, status, uncertainty, list(selection.evidence)
+        answer, status, uncertainty, question, list(selection.evidence)
     )
     citations = [
         Citation(

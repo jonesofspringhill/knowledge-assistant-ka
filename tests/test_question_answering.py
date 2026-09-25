@@ -251,3 +251,32 @@ def test_answer_question_blocks_unqualified_answer_when_evidence_requires_confir
     assert result.uncertainty is not None
     assert "evidence-conflict safeguard" in result.answer
     assert "[S1]" in result.answer
+
+
+def test_unrelated_deadline_conflict_does_not_block_supported_amount(
+    tmp_path: Path,
+) -> None:
+    retrieval, embedding, llm = _settings()
+    generator = GeneratorStub()
+    evidence = [
+        _result(
+            "The grant request is £2,500. KHH should confirm the deadline because "
+            "an older indexed form gives a different date."
+        )
+    ]
+
+    result = answer_question(
+        _workspace(tmp_path),
+        tmp_path / "chroma",
+        retrieval,
+        embedding,
+        llm,
+        EnvironmentSettings(),
+        PromptStub("{question}\n{context}\n{sources}"),
+        "How much does the grant request ask for?",
+        generator=generator,
+        searcher=lambda *args, **kwargs: (evidence, 0.01),
+    )
+
+    assert result.status == "answered"
+    assert result.uncertainty is None
