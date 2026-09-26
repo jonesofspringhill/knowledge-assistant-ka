@@ -40,7 +40,7 @@ The initial focus is reliability and usability rather than advanced AI capabilit
 |---|---|-------------|
 | M0 | Project foundation | Complete    |
 | M1 | Local retrieval foundation | Complete    |
-| M2 | Local grounded question answering | In Progress |
+| M2 | Local grounded question answering | Complete |
 | M3 | Knowledge extraction and agent-tool contract | In Progress |
 | M4 | Agreement and contradiction analysis | Planned     |
 | M5 | Agent workflows | Planned     |
@@ -121,10 +121,10 @@ Improve answer quality and reliability.
 - Safe multi-workspace refresh and named document roots (M2.1, complete).
 - Evidence metadata and exact retrieval filters (M2.2, complete).
 - Grounded single-question answers with bounded context, citations and explicit
-  insufficient-evidence handling (M2.3, complete; real-workspace validation
-  pending).
+  insufficient-evidence handling (M2.3, complete).
 - Versioned full-pipeline QA evaluation, fixed gates, human review and immutable
-  baseline/candidate comparison (M2.4, implemented; clean baseline pending).
+  baseline/candidate comparison (M2.4, complete; accepted baseline
+  `20260926T160016Z-03343bac`).
 - Retrieval, context or prompt refinement only when evaluation evidence
   identifies a weakness.
 
@@ -317,7 +317,7 @@ Architecture should be reviewed after:
 
 The immediate development goal is:
 
-> Record and review the clean M2.4 QA baseline, then refine only measured
-> retrieval or answer-quality weaknesses.
+> Continue M3 agent-tool and structured-extraction work, refining retrieval or
+> answer quality only through measured candidates against the M2 baseline.
 
 All future capabilities should build on this foundation.
