@@ -31,6 +31,7 @@ venv/
 
 # Environment
 .env
+config/config.local.yaml
 
 # Build
 dist/

@@ -12,7 +12,9 @@ def test_load_settings_validates_repository_configuration() -> None:
     """The checked-in configuration can be loaded with local environment values."""
     root = Path(__file__).parents[1]
 
-    settings = load_settings(root / "config" / "config.yaml", root / ".env.example")
+    settings = load_settings(
+        root / "config" / "config.yaml", root / ".env.example", include_local=False
+    )
 
     assert settings.llm.model == "qwen3:8b"
     assert settings.chunking.overlap == 100
@@ -23,6 +25,36 @@ def test_load_settings_validates_repository_configuration() -> None:
     )
     assert settings.prompts.question_answer == root / "prompts" / "question_answer.md"
     assert str(settings.environment.ollama_host) == "http://localhost:11434/"
+
+
+def test_load_settings_merges_a_local_overlay(tmp_path: Path) -> None:
+    config = tmp_path / "config" / "config.yaml"
+    config.parent.mkdir()
+    config.write_text(
+        (Path(__file__).parents[1] / "config" / "config.example.yaml").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    config.with_name("config.local.yaml").write_text(
+        """llm:
+  model: local-test-model
+workspaces:
+  example:
+    documents:
+      roots:
+        - name: documents
+          path: ./private-documents
+""",
+        encoding="utf-8",
+    )
+
+    settings = load_settings(config)
+
+    assert settings.llm.model == "local-test-model"
+    assert settings.workspaces["example"].documents.roots[0].path == (
+        tmp_path / "private-documents"
+    )
 
 
 def test_evidence_library_configuration_is_optional_and_strict(tmp_path: Path) -> None:

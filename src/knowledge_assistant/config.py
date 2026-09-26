@@ -329,13 +329,17 @@ class Settings(_StrictModel):
 
 
 def load_settings(
-    config_path: str | Path, env_path: str | Path | None = None
+    config_path: str | Path,
+    env_path: str | Path | None = None,
+    *,
+    include_local: bool = True,
 ) -> Settings:
     """Load validated YAML configuration and local environment values.
 
     Relative paths in YAML are resolved against the directory that contains the
     ``config`` directory. Environment values are read only from ``env_path``;
-    process environment variables are deliberately not consulted.
+    process environment variables are deliberately not consulted. When present,
+    a sibling ``*.local.yaml`` file is merged as a local, Git-ignored overlay.
     """
     configuration_file = Path(config_path).expanduser().resolve()
     if not configuration_file.is_file():
@@ -343,17 +347,40 @@ def load_settings(
             f"Configuration file does not exist: {configuration_file}"
         )
 
-    try:
-        with configuration_file.open(encoding="utf-8") as file:
-            raw_config = yaml.safe_load(file)
-    except (OSError, yaml.YAMLError) as error:
-        raise ConfigurationError(f"Unable to read configuration: {error}") from error
-
-    if not isinstance(raw_config, dict):
-        raise ConfigurationError("Configuration root must be a YAML mapping")
+    raw_config = _load_yaml_mapping(configuration_file, "Configuration")
+    local_file = configuration_file.with_name(
+        f"{configuration_file.stem}.local{configuration_file.suffix}"
+    )
+    if include_local and local_file.is_file():
+        raw_config = _deep_merge(
+            raw_config, _load_yaml_mapping(local_file, "Local configuration")
+        )
 
     raw_config["environment"] = _load_environment(env_path)
     return validate_settings_mapping(raw_config, configuration_file.parent.parent)
+
+
+def _load_yaml_mapping(path: Path, label: str) -> dict[str, Any]:
+    try:
+        with path.open(encoding="utf-8") as file:
+            raw = yaml.safe_load(file)
+    except (OSError, yaml.YAMLError) as error:
+        raise ConfigurationError(f"Unable to read {label.casefold()}: {error}") from error
+    if not isinstance(raw, dict):
+        raise ConfigurationError(f"{label} root must be a YAML mapping")
+    return raw
+
+
+def _deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
+    """Merge local mapping values without trying to merge ordered YAML lists."""
+    merged = deepcopy(base)
+    for key, overlay_value in overlay.items():
+        base_value = merged.get(key)
+        if isinstance(base_value, dict) and isinstance(overlay_value, dict):
+            merged[key] = _deep_merge(base_value, overlay_value)
+        else:
+            merged[key] = deepcopy(overlay_value)
+    return merged
 
 
 def validate_settings_mapping(config: dict[str, Any], base_directory: Path) -> Settings:

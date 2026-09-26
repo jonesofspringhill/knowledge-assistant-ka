@@ -1,0 +1,17 @@
+# Copy this file to config/config.local.yaml for machine- or collection-specific
+# settings. It is merged over config/config.yaml and is deliberately Git-ignored.
+# Lists replace their base value, so repeat the complete list when overriding one.
+
+workspaces:
+  example:
+    documents:
+      roots:
+        - name: documents
+          path: D:/path/to/documents
+
+llm:
+  model: qwen3:14b
+  thinking: false
+
+retrieval:
+  similarity_threshold: 0.10
