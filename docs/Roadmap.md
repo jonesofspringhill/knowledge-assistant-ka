@@ -41,7 +41,7 @@ The initial focus is reliability and usability rather than advanced AI capabilit
 | M0 | Project foundation | Complete    |
 | M1 | Local retrieval foundation | Complete    |
 | M2 | Local grounded question answering | In Progress |
-| M3 | Knowledge extraction | Planned     |
+| M3 | Knowledge extraction and agent-tool contract | In Progress |
 | M4 | Agreement and contradiction analysis | Planned     |
 | M5 | Agent workflows | Planned     |
 | M6 | Decision support platform | Future      |
@@ -142,6 +142,10 @@ automatic and human-review gates without an unapproved M1 retrieval regression.
 
 Move from document retrieval to structured understanding.
 
+M3.0 first establishes a provider-neutral, workspace-scoped tool contract so
+that later extraction and agent workflows consume KA capabilities rather than
+bypassing provenance and workspace isolation.
+
 ### Capabilities
 
 Extract:
@@ -157,6 +161,8 @@ Extract:
 
 ### New Components
 
+- Agent-tool registry, JSON schemas, authority checks and audit trail (M3.0,
+  in progress).
 - Metadata database.
 - Entity extraction.
 - Relationship storage.

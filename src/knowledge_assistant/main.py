@@ -12,6 +12,12 @@ from pathlib import Path
 
 import yaml
 
+from knowledge_assistant.agent_tools import (
+    AgentToolRuntime,
+    ToolContext,
+    ToolNotFoundError,
+    build_default_registry,
+)
 from knowledge_assistant.chunking import chunk_workspace
 from knowledge_assistant.config import ConfigurationError
 from knowledge_assistant.evidence.service import (
@@ -121,6 +127,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_qa_evaluation_parser(commands)
 
+    tools = commands.add_parser(
+        "tools", help="Inspect and invoke workspace-scoped tools for agent workflows."
+    )
+    tool_commands = tools.add_subparsers(dest="tool_command", required=True)
+    list_tools = tool_commands.add_parser("list", help="List registered agent tools.")
+    list_tools.add_argument("--json", action="store_true", dest="as_json")
+    describe_tool = tool_commands.add_parser(
+        "describe", help="Show an agent tool's JSON contract."
+    )
+    describe_tool.add_argument("name")
+    invoke_tool = tool_commands.add_parser(
+        "invoke", help="Invoke one read-only agent tool with JSON arguments."
+    )
+    invoke_tool.add_argument("name")
+    invoke_tool.add_argument("--workspace", required=True)
+    invoke_tool.add_argument("--input", default="{}", dest="tool_input")
+    invoke_tool.add_argument("--caller", default="cli")
+
     workspace = commands.add_parser("workspace", help="Manage workspaces.")
     workspace_commands = workspace.add_subparsers(
         dest="workspace_command", required=True
@@ -206,6 +230,45 @@ def _write_active_workspace(config_path: Path, name: str) -> None:
 
 def _settings(args: argparse.Namespace):
     return ConfigManager(args.config, args.env if args.env.is_file() else None).settings
+
+
+def _tools(args: argparse.Namespace, settings, manager: WorkspaceManager) -> int:
+    """Expose a stable JSON contract for external agent orchestrators."""
+    registry = build_default_registry(AgentToolRuntime(settings, manager))
+    if args.tool_command == "list":
+        descriptors = [item.model_dump(mode="json") for item in registry.descriptors()]
+        if args.as_json:
+            print(json.dumps(descriptors, indent=2))
+        else:
+            for descriptor in descriptors:
+                print(
+                    f"{descriptor['name']}: {descriptor['description']} "
+                    f"({descriptor['effect']})"
+                )
+        return 0
+    try:
+        descriptor = registry.descriptor(args.name)
+    except ToolNotFoundError as error:
+        print(error, file=sys.stderr)
+        return 2
+    if args.tool_command == "describe":
+        print(descriptor.model_dump_json(indent=2))
+        return 0
+    try:
+        arguments = json.loads(args.tool_input)
+    except json.JSONDecodeError as error:
+        print(f"Tool input must be a JSON object: {error.msg}", file=sys.stderr)
+        return 2
+    if not isinstance(arguments, dict):
+        print("Tool input must be a JSON object.", file=sys.stderr)
+        return 2
+    result = registry.invoke(
+        args.name,
+        ToolContext(workspace=args.workspace, caller=args.caller),
+        arguments,
+    )
+    print(result.model_dump_json(indent=2))
+    return 0 if result.status == "ok" else 2
 
 
 def _print_workspace(workspace) -> None:
@@ -816,6 +879,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
             )
         return 0
+    if args.command == "tools":
+        return _tools(args, settings, manager)
     if args.command == "metadata":
         return _metadata(args, manager)
     if args.command == "ingest":
